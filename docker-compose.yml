@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: wait-for db:3306 -t 40 -- /start.sh
+    container_name: nginx
+    restart: on-failure
+    tty: true
+    depends_on:
+      - db
+    ports:
+      - 8080:80
+    networks:
+      - minharede
+
+  db:
+    image: mysql:5.7
+    command: --default-authentication-plugin=mysql_native_password
+    container_name: db
+    restart: always
+    ports:
+      - 3306:3306
+    tty: true
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=nodedb
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - minharede
+
+networks:
+  minharede:
+    driver: bridge
